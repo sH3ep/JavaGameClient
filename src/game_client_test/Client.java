@@ -25,7 +25,7 @@ public class Client {
     private ObjectInputStream inputStream = null;
     private ObjectOutputStream outputStream = null;
     private boolean isConnected = false;
-    private BattleInformation information;
+    private PvPBattleInformation information;
 
     public Client() {
 
@@ -48,7 +48,7 @@ public class Client {
         }
     }
 
-    public void play() {
+    public void playPVE() {
 
         do {
             Scanner scanner = new Scanner(System.in);
@@ -63,28 +63,91 @@ public class Client {
             } catch (IOException ex) {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
+
             try {
                 inputStream = new ObjectInputStream(socket.getInputStream());
-                information = (BattleInformation) inputStream.readObject();
-                System.out.println("Twoje HP: "+information.GetHeroHP()+"      HP przeciwnika: "+information.GetMoobHP());
+                information = (PvPBattleInformation) inputStream.readObject();
+                System.out.println("Twoje HP: " + information.GetHeroHP() + "      HP przeciwnika: " + information.GetOponentHP());
             } catch (IOException ex) {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             } catch (ClassNotFoundException ex) {
                 Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-            
-            
-        } while ((information.GetMoobHP() > 0) && (information.GetHeroHP() > 0));
 
-        if (information.GetHeroHP()>0){
+        } while ((information.GetOponentHP() > 0) && (information.GetHeroHP() > 0));
+
+        if (information.GetHeroHP() > 0) {
             System.out.println("Wygrales");
-        }else{
+        } else {
             System.out.println("Przegrales");
         }
     }
-    /**
-     * testtesttest
-     */
+
+    public void playPVP() {
+
+        GetBattleInformation();
+        showInformation();
+
+        if (!information.GetFirstAttack()) {
+            GetBattleInformation();
+            showInformation();
+        }
+
+        do {
+            SendCommandToServer();
+
+            GetBattleInformation();
+            showInformation();
+            if ((information.GetOponentHP() <= 0) || (information.GetHeroHP() <= 0)) {
+                break;
+            }
+            GetBattleInformation();
+            showInformation();
+
+        } while ((information.GetOponentHP() > 0) && (information.GetHeroHP() > 0));
+
+        if (information.GetHeroHP() > 0) {
+            System.out.println("Wygrales");
+        } else {
+            System.out.println("Przegrales");
+        }
+
+    }
+
+    private void GetBattleInformation() {
+
+        try {
+            ObjectInputStream tempInputStream = new ObjectInputStream(socket.getInputStream());
+            information = (PvPBattleInformation) tempInputStream.readObject();
+
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ClassNotFoundException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void SendCommandToServer() {
+
+        try {
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+
+            outputStream.writeObject(GetCommand());
+        } catch (IOException ex) {
+            Logger.getLogger(Client.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private Fight_Command GetCommand() {
+
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("wybierz akcje ktora chcesz wykonac 1-attack");
+
+        return new Fight_Command(scanner.nextInt());
+
+    }
+
+    private void showInformation() {
+        System.out.println("Twoje HP: " + information.GetHeroHP() + "     HP przeciwnika: " + information.GetOponentHP());
+    }
 }

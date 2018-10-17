@@ -19,7 +19,7 @@ public class Game_Client_test {
         Client client = new Client();
         client.communicate();
         System.out.println("Connected");
-        client.play();
+        client.playPVP();
         
         // TODO code application logic here
     }
