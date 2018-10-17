@@ -84,4 +84,7 @@ public class Client {
             System.out.println("Przegrales");
         }
     }
+    /**
+     * testtesttest
+     */
 }
